@@ -148,12 +148,17 @@
             color: #ffffff;
             margin-bottom: 18px;
             font-weight: 500;
+            display: block;
         }
 
         #estado.cargando {
             color: #ff6b6b;
             font-weight: bold;
             animation: parpadeo 1s infinite;
+        }
+
+        #estado.oculto {
+            display: none !important;
         }
 
         @keyframes parpadeo {
@@ -406,33 +411,71 @@
             return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
         }
 
+        // Mostrar / Ocultar el estado limpiamente
+        function mostrarEstado(mensaje, esError = false) {
+            const divEstado = document.getElementById('estado');
+            if (!mensaje) {
+                divEstado.classList.add('oculto');
+                divEstado.classList.remove('cargando');
+            } else {
+                divEstado.textContent = mensaje;
+                divEstado.classList.remove('oculto');
+                if (esError) {
+                    divEstado.classList.remove('cargando');
+                    divEstado.style.color = '#ff6b6b';
+                } else {
+                    divEstado.classList.add('cargando');
+                    divEstado.style.color = '#ffffff';
+                }
+            }
+        }
+
+        // Fetch optimizado con Timeout (8 segundos max)
+        async function fetchConTimeout(resource, options = {}) {
+            const { timeout = 8000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            return response;
+        }
+
         // Cargar datos
         async function cargarDatos() {
-            const divEstado = document.getElementById('estado');
+            // Solo mostramos "cargando" explícito si aún no tenemos datos en pantalla
+            if (todosLosDatos.length === 0) {
+                mostrarEstado('Cargando resultados...');
+            }
 
             try {
                 const cacheBusterUrl = `${WEB_APP_URL}?t=${new Date().getTime()}`;
-                const response = await fetch(cacheBusterUrl);
+                const response = await fetchConTimeout(cacheBusterUrl, { timeout: 10000 });
                 const datos = await response.json();
 
                 if (!datos || datos.length === 0) {
-                    divEstado.style.display = 'block';
-                    divEstado.textContent = 'No hay datos disponibles en la planilla.';
-                    divEstado.classList.remove('cargando');
+                    if (todosLosDatos.length === 0) {
+                        mostrarEstado('No hay datos disponibles en la planilla.', true);
+                    }
                     return;
                 }
 
                 todosLosDatos = datos;
+                
+                // Ocultamos cualquier mensaje de estado o error inmediatamente
+                mostrarEstado(null);
                 renderizarTabla();
 
-                divEstado.style.display = 'none';
-                divEstado.classList.remove('cargando');
-
             } catch (error) {
-                divEstado.style.display = 'block';
-                divEstado.textContent = 'Error al actualizar resultados. Reintentando...';
-                divEstado.classList.remove('cargando');
-                console.error('Error:', error);
+                console.error('Error al obtener datos:', error);
+                
+                // Si ya teníamos datos mostrados previamente, no interrumpimos la pantalla con un texto rojo feo
+                if (todosLosDatos.length === 0) {
+                    mostrarEstado('Error al cargar resultados. Reintentando...', true);
+                }
             }
         }
 
@@ -461,7 +504,7 @@
             const coincidenciaFormato = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
             if (coincidenciaFormato) {
                 const dia = parseInt(coincidenciaFormato[1], 10);
-                const mes = parseInt(coincidenciaFormato[2], 10) - 1; // Meses de 0 a 11
+                const mes = parseInt(coincidenciaFormato[2], 10) - 1; 
                 let anio = parseInt(coincidenciaFormato[3], 10);
                 if (anio < 100) anio += 2000;
 
@@ -506,14 +549,14 @@
             // EXCLUIR "Marca Temporal" de los encabezados visibles en pantalla
             const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
 
-            // Renderizar encabezaos TH visibles
+            // Renderizar encabezados TH visibles
             encabezadosVisibles.forEach(header => {
                 const th = document.createElement('th');
                 th.textContent = header;
                 headersRow.appendChild(th);
             });
 
-            // Filtrado por día basándonos únicamente en la "Marca Temporal" (Columna [0])
+            // Filtrado por día basándonos en la "Marca Temporal" (Columna [0])
             const diaBusqueda = normalizarTexto(diaSeleccionado);
             
             const datosFiltrados = todosLosDatos.filter(fila => {
@@ -529,7 +572,7 @@
                 if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
                 if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
 
-                // B. Conversión a fecha en formato Latino DD/MM/YYYY (Evita desfase de huso horario UTC)
+                // B. Conversión a fecha en formato Latino DD/MM/YYYY
                 const fecha = parsearFechaLatino(valorMarca);
                 if (fecha) {
                     const numDia = fecha.getDay(); // 0: Dom, 4: Jue, 5: Vie, 6: Sáb
