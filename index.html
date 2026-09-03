@@ -13,13 +13,14 @@
             --color-negro: #121212;
             --color-negro-card: #1e1e1e;
             --color-rojo: #e31d2b;
+            --color-rojo-logo: #de020a;
             --color-rojo-hover: #b8121f;
             --color-ganador: #1b5e20; /* Verde texto ganador */
             --color-ganador-bg: #e8f5e9; /* Fondo verde claro */
             --color-ganador-border: #81c784;
             --color-puntos-ganador: #d32f2f; /* Rojo destacado para puntos altos */
             --color-blanco: #ffffff;
-            --color-gris-fondo: #152241; /* Nuevo color de fondo solicitado */
+            --color-gris-fondo: #152241; /* Color de fondo */
             --color-gris-linea: #e2e8f0;
             --fuente-principal: 'Oswald', sans-serif;
             --fuente-secundaria: 'Roboto', sans-serif;
@@ -51,11 +52,36 @@
             gap: 20px;
         }
 
-        .header-logo {
+        /* LOGO EN CUADRADO ROJO (#de020a) */
+        .logo-cuadrado {
+            background-color: var(--color-rojo-logo);
+            color: var(--color-blanco);
+            width: 60px;
             height: 60px;
-            width: auto;
-            border-radius: 4px;
-            object-fit: contain;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .logo-cuadrado .logo-vsd {
+            font-family: var(--fuente-principal);
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-cuadrado .logo-eventos {
+            font-family: var(--fuente-secundaria);
+            font-size: 0.65rem;
+            font-weight: 400;
+            text-transform: lowercase;
+            line-height: 1;
+            margin-top: 2px;
         }
 
         header h1 {
@@ -235,8 +261,17 @@
                 padding: 12px 15px;
             }
 
-            .header-logo {
-                height: 45px;
+            .logo-cuadrado {
+                width: 50px;
+                height: 50px;
+            }
+
+            .logo-cuadrado .logo-vsd {
+                font-size: 1.1rem;
+            }
+
+            .logo-cuadrado .logo-eventos {
+                font-size: 0.55rem;
             }
 
             header h1 {
@@ -244,8 +279,8 @@
             }
 
             .btn-dia {
-                padding: 7px 16px;
-                font-size: 0.9rem;
+                padding: 7px 14px;
+                font-size: 0.85rem;
             }
 
             .tabla-card {
@@ -313,18 +348,22 @@
 <body>
 
     <header>
-        <img src="vsd.jpg" alt="VSD Eventos" class="header-logo">
+        <div class="logo-cuadrado">
+            <span class="logo-vsd">VSD</span>
+            <span class="logo-eventos">eventos</span>
+        </div>
         <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
     </header>
 
     <div class="main-container">
         
-        <!-- Botones de Filtrado por Día -->
+        <!-- Botones de Filtrado por Día (Orden: Jueves, Viernes, Sábado, Domingo, Todos) -->
         <div class="filtros-dias">
-            <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos</button>
+            <button class="btn-dia" onclick="filtrarPorDia('JUEVES')">Jueves</button>
             <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
             <button class="btn-dia" onclick="filtrarPorDia('SÁBADO')">Sábado</button>
             <button class="btn-dia" onclick="filtrarPorDia('DOMINGO')">Domingo</button>
+            <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos</button>
         </div>
 
         <div id="estado" class="cargando">Cargando resultados...</div>
@@ -429,9 +468,10 @@
             // Columna de Marca Temporal
             let columnaMarcaTemporal = keys.find(key => esMarcaTemporal(key));
 
-            // Encabezados visibles
+            // Encabezados visibles (Se oculta la Columna ID/primera y la Columna 2 index=1)
             const encabezados = keys.filter((key, index) => {
-                if (index === 0 && key.toLowerCase().includes('id')) return false;
+                if (index === 0 && key.toLowerCase().includes('id')) return false; // ID / Primera columna
+                if (index === 1) return false; // Se elimina la Columna 2 (Masculino/Femenino)
                 if (esMarcaTemporal(key)) return false;
                 return true;
             });
@@ -454,6 +494,7 @@
                     
                     if (!isNaN(fecha.getTime())) {
                         const numeroDia = fecha.getDay();
+                        if (diaBusqueda === 'JUEVES' && numeroDia === 4) return true;
                         if (diaBusqueda === 'VIERNES' && numeroDia === 5) return true;
                         if (diaBusqueda === 'SABADO' && numeroDia === 6) return true;
                         if (diaBusqueda === 'DOMINGO' && numeroDia === 0) return true;
@@ -463,8 +504,9 @@
                 return Object.values(fila).some(val => {
                     const valNorm = normalizarTexto(val);
                     if (valNorm.includes(diaBusqueda)) return true;
-                    if (diaBusqueda === "SABADO" && valNorm.includes("SAB")) return true;
+                    if (diaBusqueda === "JUEVES" && valNorm.includes("JUE")) return true;
                     if (diaBusqueda === "VIERNES" && valNorm.includes("VIE")) return true;
+                    if (diaBusqueda === "SABADO" && valNorm.includes("SAB")) return true;
                     if (diaBusqueda === "DOMINGO" && valNorm.includes("DOM")) return true;
                     return false;
                 });
