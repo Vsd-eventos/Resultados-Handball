@@ -19,7 +19,7 @@
             --color-ganador-border: #81c784;
             --color-puntos-ganador: #d32f2f; /* Rojo destacado para puntos altos */
             --color-blanco: #ffffff;
-            --color-gris-fondo: #152241; /* Nuevo color de fondo solicitado */
+            --color-gris-fondo: #152241; /* Color de fondo */
             --color-gris-linea: #e2e8f0;
             --fuente-principal: 'Oswald', sans-serif;
             --fuente-secundaria: 'Roboto', sans-serif;
@@ -51,7 +51,7 @@
             gap: 15px;
         }
 
-        /* 1_ LOGO CUADRADO ROJO (#de020a) CON TEXTO VSD EVENTOS */
+        /* LOGO CUADRADO ROJO (#de020a) CON TEXTO VSD EVENTOS */
         .logo-cuadrado {
             background-color: #de020a;
             color: var(--color-blanco);
@@ -243,7 +243,6 @@
             border-radius: 6px;
         }
 
-        /* Estilo especial para el puntaje ganador */
         .puntos-ganadores {
             background-color: var(--color-rojo) !important;
             color: var(--color-blanco) !important;
@@ -347,7 +346,6 @@
 <body>
 
     <header>
-        <!-- 1_ Cuadrado Rojo con VSD / eventos -->
         <div class="logo-cuadrado">
             <span class="vsd-text">VSD</span>
             <span class="eventos-text">eventos</span>
@@ -357,7 +355,7 @@
 
     <div class="main-container">
         
-        <!-- 2_ Orden de Filtros: Jueves, Viernes, Sábado, Domingo, Todos -->
+        <!-- Filtros por día -->
         <div class="filtros-dias">
             <button class="btn-dia" onclick="filtrarPorDia('JUEVES')">Jueves</button>
             <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
@@ -373,7 +371,7 @@
                 <table id="tabla-resultados">
                     <thead>
                         <tr id="headers">
-                            <!-- Los encabezados se generarán dinámicamente -->
+                            <!-- Se generan dinámicamente según lo que envíe la nueva URL -->
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla">
@@ -385,7 +383,8 @@
     </div>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwsrZgTDXuP0_IhgKMBXUiTCv_4mwYXFK7TRvhA2gLzSUY0b58lejUDlE67aKuWuOjV7g/exec'; 
+        // Nueva URL de Google Apps Script
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwBD87MzAFcsiuVrkcUVhwygaTj_wqvCtkpzVUX_bgJFOBRo4c3yRY1ne9h6a_BiAEARA/exec'; 
         const TIEMPO_REFRESCO_MS = 60000;
 
         let todosLosDatos = [];
@@ -446,21 +445,14 @@
             renderizarTabla();
         }
 
-        // Verificar si la columna corresponde a la Marca temporal
-        function esMarcaTemporal(nombreColumna) {
+        // Verificar si la columna corresponde a la Marca temporal o ID interno
+        function esMarcaTemporalOID(nombreColumna, index) {
             const col = normalizarTexto(nombreColumna);
+            if (index === 0 && col.includes("ID")) return true;
             return col.includes("MARCA TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA DE REGISTRO");
         }
 
-        // 3_ Verificar si la columna corresponde a Género/Categoría (Masculino/Femenino)
-        function esColumnaGenero(nombreColumna, index) {
-            const col = normalizarTexto(nombreColumna);
-            // Se filtra si es la 3° columna (index 2) o si el nombre contiene referencias a genero
-            if (index === 2) return true;
-            return col.includes("GENERO") || col.includes("SEXO") || col.includes("MASCULINO") || col.includes("FEMENINO");
-        }
-
-        // Renderizar Tabla / Tarjetas
+        // Renderizar Tabla / Tarjetas adaptado a los encabezados del nuevo Sheet
         function renderizarTabla() {
             const headersRow = document.getElementById('headers');
             const cuerpoTabla = document.getElementById('cuerpo-tabla');
@@ -473,24 +465,23 @@
             const primerObjeto = todosLosDatos[0];
             const keys = Object.keys(primerObjeto);
             
-            // Columna de Marca Temporal
-            let columnaMarcaTemporal = keys.find(key => esMarcaTemporal(key));
+            // Columna de Marca Temporal si existe
+            let columnaMarcaTemporal = keys.find(key => esMarcaTemporalOID(key, -1));
 
-            // Encabezados visibles (3_ Excluyendo ID, Marca temporal y la 3era Columna/Género)
+            // Filtrar encabezados visibles trayendo exactamente las columnas del Sheet
             const encabezados = keys.filter((key, index) => {
-                if (index === 0 && key.toLowerCase().includes('id')) return false;
-                if (esMarcaTemporal(key)) return false;
-                if (esColumnaGenero(key, index)) return false;
+                if (esMarcaTemporalOID(key, index)) return false;
                 return true;
             });
 
+            // Generar dinámicamente los TH del nuevo Sheet
             encabezados.forEach(header => {
                 const th = document.createElement('th');
                 th.textContent = header;
                 headersRow.appendChild(th);
             });
 
-            // Filtrado por día usando Marca temporal o texto
+            // Filtrado por día
             const diaBusqueda = normalizarTexto(diaSeleccionado);
             
             const datosFiltrados = todosLosDatos.filter(fila => {
@@ -527,11 +518,11 @@
                 return;
             }
 
-            // Renderizar filas
+            // Renderizar filas de la tabla
             datosFiltrados.forEach(fila => {
                 const tr = document.createElement('tr');
 
-                // Analizamos el ganador de este partido
+                // Analizamos el ganador de este partido de forma adaptable
                 const analisisGanador = obtenerGanadorEspecifico(fila, encabezados);
 
                 encabezados.forEach(header => {
@@ -541,17 +532,17 @@
                     td.setAttribute('data-label', header);
 
                     const headerUpper = normalizarTexto(header);
-                    const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('RESULTADO');
+                    const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
 
-                    // 1. Si es la columna de un Club Ganador -> Marcar en Verde con Trofeo
+                    // 1. Si es la columna de un Club/Equipo Ganador -> Marcar en Verde con Trofeo
                     if (analisisGanador.ganadorHeader && analisisGanador.ganadorHeader === header && valor !== "-") {
                         td.innerHTML = `<span class="equipo-ganador">🏆 ${valor}</span>`;
                     } 
-                    // 2. Si es la columna de PUNTOS del Club Ganador -> Marcar con insignia Roja Destacada
-                    else if (analisisGanador.puntosGanadorHeader && headerUpper.includes(analisisGanador.puntosGanadorHeader) && valor !== "-") {
+                    // 2. Si es la columna de PUNTOS/GOLES del Ganador -> Marcar con insignia Roja Destacada
+                    else if (analisisGanador.puntosGanadorHeader && header === analisisGanador.puntosGanadorHeader && valor !== "-") {
                         td.innerHTML = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
                     } 
-                    // 3. Puntos normales
+                    // 3. Puntos/Goles normales
                     else if (esPuntos && valor !== "-") {
                         td.innerHTML = `<span class="badge-puntos">${valor}</span>`;
                     } 
@@ -567,29 +558,36 @@
             });
         }
 
-        // Comparar PUNTOS CLUB 1 vs PUNTOS CLUB 2
+        // Función adaptable para detectar ganador entre Equipo 1 / Equipo 2 (o Local / Visitante)
         function obtenerGanadorEspecifico(fila, encabezados) {
-            let club1Header = null, puntos1 = null;
-            let club2Header = null, puntos2 = null;
+            let club1Header = null, puntos1 = null, puntos1Header = null;
+            let club2Header = null, puntos2 = null, puntos2Header = null;
 
             encabezados.forEach(h => {
                 const name = normalizarTexto(h);
-                if (name === 'CLUB 1' || name === 'CLUB1') {
-                    club1Header = h;
-                } else if (name.includes('PUNTOS CLUB 1') || name.includes('PUNTOS 1')) {
-                    puntos1 = parseInt(fila[h], 10);
-                } else if (name === 'CLUB 2' || name === 'CLUB2') {
-                    club2Header = h;
-                } else if (name.includes('PUNTOS CLUB 2') || name.includes('PUNTOS 2')) {
-                    puntos2 = parseInt(fila[h], 10);
+                // Detección flexible de equipos
+                if (name.includes('CLUB 1') || name.includes('EQUIPO 1') || name.includes('LOCAL')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                        puntos1 = parseInt(fila[h], 10);
+                        puntos1Header = h;
+                    } else {
+                        club1Header = h;
+                    }
+                } else if (name.includes('CLUB 2') || name.includes('EQUIPO 2') || name.includes('VISITANTE')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                        puntos2 = parseInt(fila[h], 10);
+                        puntos2Header = h;
+                    } else {
+                        club2Header = h;
+                    }
                 }
             });
 
             if (!isNaN(puntos1) && !isNaN(puntos2)) {
                 if (puntos1 > puntos2) {
-                    return { ganadorHeader: club1Header, puntosGanadorHeader: 'PUNTOS CLUB 1' };
+                    return { ganadorHeader: club1Header, puntosGanadorHeader: puntos1Header };
                 } else if (puntos2 > puntos1) {
-                    return { ganadorHeader: club2Header, puntosGanadorHeader: 'PUNTOS CLUB 2' };
+                    return { ganadorHeader: club2Header, puntosGanadorHeader: puntos2Header };
                 }
             }
 
