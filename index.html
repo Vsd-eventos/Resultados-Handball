@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VSD Eventos - Resultados Maxi Básquet</title>
+    <title>VSD Eventos - 31° Torneo Internacional de Handball</title>
     <!-- Importamos fuentes desde Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -19,7 +19,7 @@
             --color-ganador-border: #81c784;
             --color-puntos-ganador: #d32f2f; /* Rojo destacado para puntos altos */
             --color-blanco: #ffffff;
-            --color-gris-fondo: #f4f6f8;
+            --color-gris-fondo: #152241; /* Nuevo color de fondo solicitado */
             --color-gris-linea: #e2e8f0;
             --fuente-principal: 'Oswald', sans-serif;
             --fuente-secundaria: 'Roboto', sans-serif;
@@ -42,10 +42,20 @@
         header {
             background-color: var(--color-negro);
             color: var(--color-blanco);
-            padding: 20px 15px;
-            text-align: center;
+            padding: 15px 20px;
             border-bottom: 5px solid var(--color-rojo);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+
+        .header-logo {
+            height: 60px;
+            width: auto;
+            border-radius: 4px;
+            object-fit: contain;
         }
 
         header h1 {
@@ -55,6 +65,7 @@
             text-transform: uppercase;
             letter-spacing: 1.2px;
             line-height: 1.2;
+            text-align: left;
         }
 
         header h1 span.rojo {
@@ -72,7 +83,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin: 20px 0 15px;
+            margin: 25px 0 15px;
             flex-wrap: wrap;
         }
 
@@ -108,14 +119,14 @@
         /* --- SECCIÓN DE ESTADO --- */
         #estado {
             text-align: center;
-            font-size: 0.88rem;
-            color: #555;
+            font-size: 0.95rem;
+            color: #ffffff;
             margin-bottom: 18px;
             font-weight: 500;
         }
 
         #estado.cargando {
-            color: var(--color-rojo);
+            color: #ff6b6b;
             font-weight: bold;
             animation: parpadeo 1s infinite;
         }
@@ -128,7 +139,7 @@
         .tabla-card {
             background-color: var(--color-blanco);
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             overflow: hidden;
             border: 1px solid var(--color-gris-linea);
         }
@@ -217,8 +228,19 @@
 
         /* --- VISTA MÓVIL (CARDS TARJETAS DEPORTIVAS) --- */
         @media (max-width: 768px) {
+            header {
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 15px;
+            }
+
+            .header-logo {
+                height: 45px;
+            }
+
             header h1 {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
 
             .btn-dia {
@@ -251,7 +273,7 @@
                 background-color: var(--color-blanco) !important;
                 border: 1px solid var(--color-gris-linea);
                 border-radius: 12px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 padding: 12px 16px;
             }
 
@@ -291,7 +313,8 @@
 <body>
 
     <header>
-        <h1>VSD eventos <span class="rojo">maxi basquet</span> resultados</h1>
+        <img src="vsd.jpg" alt="VSD Eventos" class="header-logo">
+        <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
     </header>
 
     <div class="main-container">
