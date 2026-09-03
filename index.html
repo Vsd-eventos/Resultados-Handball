@@ -399,13 +399,14 @@
                 .trim();
         }
 
-        // Comprobar si el nombre de la columna corresponde a la Marca Temporal
+        // Comprobar si la columna corresponde a la Marca Temporal o ID
         function esMarcaTemporal(nombreColumna) {
+            if (!nombreColumna) return false;
             const col = normalizarTexto(nombreColumna);
-            return col.includes("MARCA TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA DE REGISTRO");
+            return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
         }
 
-        // Cargar datos desde Google Apps Script
+        // Cargar datos
         async function cargarDatos() {
             const divEstado = document.getElementById('estado');
 
@@ -450,26 +451,38 @@
             renderizarTabla();
         }
 
-        // Parsear fecha flexible en formato Latino/Google (DD/MM/YYYY hh:mm:ss o ISO)
-        function parsearFechaFlexible(fechaStr) {
+        // Parseador con prioridad latina DD/MM/YYYY
+        function parsearFechaLatino(fechaStr) {
             if (!fechaStr) return null;
 
-            // Intento de parseo nativo
-            let f = new Date(fechaStr);
-            if (!isNaN(f.getTime())) return f;
+            const str = String(fechaStr).trim();
 
-            // Formato habitual DD/MM/YYYY HH:mm:ss
-            const partes = String(fechaStr).split(' ');
-            if (partes.length > 0) {
-                const fechaPartes = partes[0].split('/');
-                if (fechaPartes.length === 3) {
-                    const dia = parseInt(fechaPartes[0], 10);
-                    const mes = parseInt(fechaPartes[1], 10) - 1;
-                    const anio = parseInt(fechaPartes[2], 10);
-                    f = new Date(anio, mes, dia);
-                    if (!isNaN(f.getTime())) return f;
-                }
+            // 1. Detección de formato DD/MM/YYYY HH:mm:ss o DD-MM-YYYY
+            const coincidenciaFormato = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+            if (coincidenciaFormato) {
+                const dia = parseInt(coincidenciaFormato[1], 10);
+                const mes = parseInt(coincidenciaFormato[2], 10) - 1; // Meses de 0 a 11
+                let anio = parseInt(coincidenciaFormato[3], 10);
+                if (anio < 100) anio += 2000;
+
+                const fechaLocal = new Date(anio, mes, dia);
+                if (!isNaN(fechaLocal.getTime())) return fechaLocal;
             }
+
+            // 2. Fallback para fechas ISO (YYYY-MM-DD)
+            const coincidenciaISO = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (coincidenciaISO) {
+                const anio = parseInt(coincidenciaISO[1], 10);
+                const mes = parseInt(coincidenciaISO[2], 10) - 1;
+                const dia = parseInt(coincidenciaISO[3], 10);
+
+                const fechaLocal = new Date(anio, mes, dia);
+                if (!isNaN(fechaLocal.getTime())) return fechaLocal;
+            }
+
+            // 3. Parser nativo como último recurso
+            const fNativa = new Date(str);
+            if (!isNaN(fNativa.getTime())) return fNativa;
 
             return null;
         }
@@ -487,39 +500,39 @@
             const primerObjeto = todosLosDatos[0];
             const keys = Object.keys(primerObjeto);
             
-            // Buscar la llave que corresponde a la "Marca Temporal"
+            // Identificar columna de referencia (Marca Temporal o la primera columna [0])
             const keyMarcaTemporal = keys.find(k => esMarcaTemporal(k)) || keys[0];
 
-            // EXCLUIR "Marca Temporal" de los encabezados visibles
-            const encabezadosVisibles = keys.filter(key => !esMarcaTemporal(key));
+            // EXCLUIR "Marca Temporal" de los encabezados visibles en pantalla
+            const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
 
-            // Generar TH dinámicos excluyendo Marca Temporal
+            // Renderizar encabezaos TH visibles
             encabezadosVisibles.forEach(header => {
                 const th = document.createElement('th');
                 th.textContent = header;
                 headersRow.appendChild(th);
             });
 
-            // Filtrado por día basándonos únicamente en la "Marca Temporal"
+            // Filtrado por día basándonos únicamente en la "Marca Temporal" (Columna [0])
             const diaBusqueda = normalizarTexto(diaSeleccionado);
             
             const datosFiltrados = todosLosDatos.filter(fila => {
                 if (diaBusqueda === 'TODOS') return true;
 
-                const valorMarcaTemporal = fila[keyMarcaTemporal];
-                if (!valorMarcaTemporal) return false;
+                const valorMarca = fila[keyMarcaTemporal];
+                if (!valorMarca) return false;
 
-                // 1. Evaluar si la celda de Marca Temporal tiene el nombre del día en texto
-                const txtNormalizado = normalizarTexto(valorMarcaTemporal);
-                if (diaBusqueda === "JUEVES" && (txtNormalizado.includes("JUEVES") || txtNormalizado.includes("JUE"))) return true;
-                if (diaBusqueda === "VIERNES" && (txtNormalizado.includes("VIERNES") || txtNormalizado.includes("VIE"))) return true;
-                if (diaBusqueda === "SABADO" && (txtNormalizado.includes("SABADO") || txtNormalizado.includes("SÁBADO") || txtNormalizado.includes("SAB"))) return true;
-                if (diaBusqueda === "DOMINGO" && (txtNormalizado.includes("DOMINGO") || txtNormalizado.includes("DOM"))) return true;
+                // A. Si el valor contiene explícitamente el día en texto
+                const txtNorm = normalizarTexto(valorMarca);
+                if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
+                if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
+                if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
+                if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
 
-                // 2. Parsear como Fecha objeto para obtener el día de la semana (0:Dom, 4:Jue, 5:Vie, 6:Sáb)
-                const fecha = parsearFechaFlexible(valorMarcaTemporal);
+                // B. Conversión a fecha en formato Latino DD/MM/YYYY (Evita desfase de huso horario UTC)
+                const fecha = parsearFechaLatino(valorMarca);
                 if (fecha) {
-                    const numDia = fecha.getDay();
+                    const numDia = fecha.getDay(); // 0: Dom, 4: Jue, 5: Vie, 6: Sáb
                     if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
                     if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
                     if (diaBusqueda === 'SABADO' && numDia === 6) return true;
@@ -536,7 +549,7 @@
                 return;
             }
 
-            // Renderizar filas de la tabla
+            // Renderizar filas de datos
             datosFiltrados.forEach(fila => {
                 const tr = document.createElement('tr');
 
@@ -551,11 +564,11 @@
                     const headerUpper = normalizarTexto(header);
                     const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
 
-                    // 1. Si es la columna del Club Ganador -> Marcar con Trofeo
+                    // 1. Marca equipo ganador
                     if (analisisGanador.ganadorHeader && analisisGanador.ganadorHeader === header && valor !== "-") {
                         td.innerHTML = `<span class="equipo-ganador">🏆 ${valor}</span>`;
                     } 
-                    // 2. Si es la columna de PUNTOS/GOLES del Ganador -> Badge Rojo
+                    // 2. Marca puntos del ganador
                     else if (analisisGanador.puntosGanadorHeader && header === analisisGanador.puntosGanadorHeader && valor !== "-") {
                         td.innerHTML = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
                     } 
@@ -575,7 +588,7 @@
             });
         }
 
-        // Función para comparar puntos entre Club 1 y Club 2
+        // Determinar cuál equipo ganó
         function obtenerGanadorEspecifico(fila, encabezados) {
             let club1Header = null, puntos1 = null, puntos1Header = null;
             let club2Header = null, puntos2 = null, puntos2Header = null;
@@ -610,7 +623,7 @@
             return { ganadorHeader: null, puntosGanadorHeader: null };
         }
 
-        // Inicializar
+        // Carga inicial
         cargarDatos();
         setInterval(cargarDatos, TIEMPO_REFRESCO_MS);
     </script>
