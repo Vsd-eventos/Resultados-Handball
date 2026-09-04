@@ -14,12 +14,12 @@
             --color-negro-card: #1e1e1e;
             --color-rojo: #e31d2b;
             --color-rojo-hover: #b8121f;
-            --color-ganador: #1b5e20; /* Verde texto ganador */
-            --color-ganador-bg: #e8f5e9; /* Fondo verde claro */
+            --color-ganador: #1b5e20;
+            --color-ganador-bg: #e8f5e9;
             --color-ganador-border: #81c784;
-            --color-puntos-ganador: #d32f2f; /* Rojo destacado para puntos altos */
+            --color-puntos-ganador: #d32f2f;
             --color-blanco: #ffffff;
-            --color-gris-fondo: #152241; /* Color de fondo */
+            --color-gris-fondo: #152241;
             --color-gris-linea: #e2e8f0;
             --fuente-principal: 'Oswald', sans-serif;
             --fuente-secundaria: 'Roboto', sans-serif;
@@ -47,11 +47,17 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
             gap: 15px;
         }
 
-        /* LOGO CUADRADO ROJO (#de020a) CON TEXTO VSD EVENTOS */
         .logo-cuadrado {
             background-color: #de020a;
             color: var(--color-blanco);
@@ -95,6 +101,41 @@
 
         header h1 span.rojo {
             color: var(--color-rojo);
+        }
+
+        /* --- FILTRO DROPDOWN DE CATEGORÍA --- */
+        .contenedor-categoria-filtro {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-categoria {
+            background-color: #1e1e1e;
+            color: var(--color-blanco);
+            border: 2px solid var(--color-rojo);
+            font-family: var(--fuente-principal);
+            font-size: 1.05rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .select-categoria:hover, .select-categoria:focus {
+            background-color: var(--color-rojo);
+            border-color: #ffffff;
+        }
+
+        .select-categoria option {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: var(--fuente-secundaria);
+            font-size: 0.95rem;
         }
 
         .main-container {
@@ -222,7 +263,6 @@
             vertical-align: middle;
         }
 
-        /* --- ESTILOS DE DESTACADO DE GANADOR Y PUNTOS --- */
         .equipo-ganador {
             font-weight: 700 !important;
             color: var(--color-ganador) !important;
@@ -258,10 +298,23 @@
         /* --- VISTA MÓVIL (CARDS TARJETAS DEPORTIVAS) --- */
         @media (max-width: 768px) {
             header {
-                flex-direction: row;
-                align-items: center;
+                flex-direction: column;
+                align-items: flex-start;
                 gap: 12px;
                 padding: 12px 15px;
+            }
+
+            .header-brand {
+                width: 100%;
+            }
+
+            .contenedor-categoria-filtro {
+                width: 100%;
+            }
+
+            .select-categoria {
+                width: 100%;
+                text-align: center;
             }
 
             .logo-cuadrado {
@@ -351,11 +404,26 @@
 <body>
 
     <header>
-        <div class="logo-cuadrado">
-            <span class="vsd-text">VSD</span>
-            <span class="eventos-text">eventos</span>
+        <div class="header-brand">
+            <div class="logo-cuadrado">
+                <span class="vsd-text">VSD</span>
+                <span class="eventos-text">eventos</span>
+            </div>
+            <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
         </div>
-        <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
+
+        <!-- DROPDOWN DESPLEGABLE DE CATEGORÍA -->
+        <div class="contenedor-categoria-filtro">
+            <select id="select-categoria" class="select-categoria" onchange="filtrarPorCategoria(this.value)">
+                <option value="TODAS">🏆 Todas las Categorías</option>
+                <option value="MENOR MASCULINO">Menor Masculino</option>
+                <option value="MENOR FEMENINO">Menor Femenino</option>
+                <option value="CADETE MASCULINO">Cadete Masculino</option>
+                <option value="CADETE FEMENINO">Cadete Femenino</option>
+                <option value="JUVENIL MASCULINO">Juvenil Masculino</option>
+                <option value="JUVENIL FEMENINO">Juvenil Femenino</option>
+            </select>
+        </div>
     </header>
 
     <div class="main-container">
@@ -366,7 +434,7 @@
             <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
             <button class="btn-dia" onclick="filtrarPorDia('SÁBADO')">Sábado</button>
             <button class="btn-dia" onclick="filtrarPorDia('DOMINGO')">Domingo</button>
-            <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos</button>
+            <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos los Días</button>
         </div>
 
         <div id="estado" class="cargando">Cargando resultados...</div>
@@ -376,7 +444,7 @@
                 <table id="tabla-resultados">
                     <thead>
                         <tr id="headers">
-                            <!-- Se generan dinámicamente según las columnas del Sheet -->
+                            <!-- Se generan dinámicamente -->
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla">
@@ -389,12 +457,12 @@
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_RBBTGiCE9demgpqkmvIyAA1vu_3PBAKqVuU7TjbbOiVf-CmmL0sO9dKTRQIP_pYB/exec'; 
-        const TIEMPO_REFRESCO_MS = 60000;
+        const TIEMPO_REFRESCO_MS = 120000; // Refresco optimizado a 2 min
 
         let todosLosDatos = [];
         let diaSeleccionado = 'TODOS';
+        let categoriaSeleccionada = 'TODAS';
 
-        // Normalizar texto para comparaciones
         function normalizarTexto(txt) {
             if (!txt) return "";
             return String(txt)
@@ -404,16 +472,21 @@
                 .trim();
         }
 
-        // Comprobar si la columna corresponde a la Marca Temporal o ID
         function esMarcaTemporal(nombreColumna) {
             if (!nombreColumna) return false;
             const col = normalizarTexto(nombreColumna);
             return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
         }
 
-        // Mostrar / Ocultar el estado limpiamente
+        function esColumnaCategoria(nombreColumna) {
+            if (!nombreColumna) return false;
+            const col = normalizarTexto(nombreColumna);
+            return col.includes("CATEGORIA") || col.includes("CATEGORÍA");
+        }
+
         function mostrarEstado(mensaje, esError = false) {
             const divEstado = document.getElementById('estado');
+            if (!divEstado) return;
             if (!mensaje) {
                 divEstado.classList.add('oculto');
                 divEstado.classList.remove('cargando');
@@ -430,7 +503,6 @@
             }
         }
 
-        // Fetch optimizado con Timeout (8 segundos max)
         async function fetchConTimeout(resource, options = {}) {
             const { timeout = 8000 } = options;
             const controller = new AbortController();
@@ -444,9 +516,19 @@
             return response;
         }
 
-        // Cargar datos
         async function cargarDatos() {
-            // Solo mostramos "cargando" explícito si aún no tenemos datos en pantalla
+            // Revisa si hay datos guardados previamente en la memoria local
+            const datosCache = localStorage.getItem('vsd_resultados_cache');
+            if (datosCache && todosLosDatos.length === 0) {
+                try {
+                    todosLosDatos = JSON.parse(datosCache);
+                    renderizarTabla();
+                    mostrarEstado(null);
+                } catch (e) {
+                    console.warn('Error leyendo caché local');
+                }
+            }
+
             if (todosLosDatos.length === 0) {
                 mostrarEstado('Cargando resultados...');
             }
@@ -464,118 +546,111 @@
                 }
 
                 todosLosDatos = datos;
+                localStorage.setItem('vsd_resultados_cache', JSON.stringify(datos));
                 
-                // Ocultamos cualquier mensaje de estado o error inmediatamente
                 mostrarEstado(null);
                 renderizarTabla();
 
             } catch (error) {
                 console.error('Error al obtener datos:', error);
-                
-                // Si ya teníamos datos mostrados previamente, no interrumpimos la pantalla con un texto rojo feo
-                if (todosLosDatos.length === 0) {
-                    mostrarEstado('Error al cargar resultados. Reintentando...', true);
+                if (todosLosDatos.length > 0) {
+                    mostrarEstado(null);
+                } else {
+                    mostrarEstado('Error de conexión. Intentando reconectar...', true);
                 }
             }
         }
 
-        // Cambiar filtro de día
         function filtrarPorDia(dia) {
             diaSeleccionado = dia;
-            
             document.querySelectorAll('.btn-dia').forEach(btn => {
-                if (normalizarTexto(btn.textContent) === normalizarTexto(dia)) {
+                if (normalizarTexto(btn.textContent).includes(normalizarTexto(dia))) {
                     btn.classList.add('activo');
                 } else {
                     btn.classList.remove('activo');
                 }
             });
-
             renderizarTabla();
         }
 
-        // Parseador con prioridad latina DD/MM/YYYY
+        function filtrarPorCategoria(cat) {
+            categoriaSeleccionada = cat;
+            renderizarTabla();
+        }
+
         function parsearFechaLatino(fechaStr) {
             if (!fechaStr) return null;
-
             const str = String(fechaStr).trim();
 
-            // 1. Detección de formato DD/MM/YYYY HH:mm:ss o DD-MM-YYYY
             const coincidenciaFormato = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
             if (coincidenciaFormato) {
                 const dia = parseInt(coincidenciaFormato[1], 10);
                 const mes = parseInt(coincidenciaFormato[2], 10) - 1; 
                 let anio = parseInt(coincidenciaFormato[3], 10);
                 if (anio < 100) anio += 2000;
-
                 const fechaLocal = new Date(anio, mes, dia);
                 if (!isNaN(fechaLocal.getTime())) return fechaLocal;
             }
 
-            // 2. Fallback para fechas ISO (YYYY-MM-DD)
             const coincidenciaISO = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
             if (coincidenciaISO) {
                 const anio = parseInt(coincidenciaISO[1], 10);
                 const mes = parseInt(coincidenciaISO[2], 10) - 1;
                 const dia = parseInt(coincidenciaISO[3], 10);
-
                 const fechaLocal = new Date(anio, mes, dia);
                 if (!isNaN(fechaLocal.getTime())) return fechaLocal;
             }
 
-            // 3. Parser nativo como último recurso
             const fNativa = new Date(str);
             if (!isNaN(fNativa.getTime())) return fNativa;
 
             return null;
         }
 
-        // Renderizar Tabla / Tarjetas
         function renderizarTabla() {
             const headersRow = document.getElementById('headers');
             const cuerpoTabla = document.getElementById('cuerpo-tabla');
 
-            headersRow.innerHTML = '';
-            cuerpoTabla.innerHTML = '';
+            if (!headersRow || !cuerpoTabla) return;
 
-            if (todosLosDatos.length === 0) return;
+            if (todosLosDatos.length === 0) {
+                headersRow.innerHTML = '';
+                cuerpoTabla.innerHTML = '';
+                return;
+            }
 
             const primerObjeto = todosLosDatos[0];
             const keys = Object.keys(primerObjeto);
-            
-            // Identificar columna de referencia (Marca Temporal o la primera columna [0])
             const keyMarcaTemporal = keys.find(k => esMarcaTemporal(k)) || keys[0];
+            const keyCategoria = keys.find(k => esColumnaCategoria(k));
 
-            // EXCLUIR "Marca Temporal" de los encabezados visibles en pantalla
             const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
 
-            // Renderizar encabezados TH visibles
-            encabezadosVisibles.forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                headersRow.appendChild(th);
-            });
+            headersRow.innerHTML = encabezadosVisibles.map(h => `<th>${h}</th>`).join('');
 
-            // Filtrado por día basándonos en la "Marca Temporal" (Columna [0])
             const diaBusqueda = normalizarTexto(diaSeleccionado);
+            const catBusqueda = normalizarTexto(categoriaSeleccionada);
             
             const datosFiltrados = todosLosDatos.filter(fila => {
+                if (catBusqueda !== 'TODAS' && keyCategoria) {
+                    const valorCatFila = normalizarTexto(fila[keyCategoria]);
+                    if (!valorCatFila.includes(catBusqueda)) return false;
+                }
+
                 if (diaBusqueda === 'TODOS') return true;
 
                 const valorMarca = fila[keyMarcaTemporal];
                 if (!valorMarca) return false;
 
-                // A. Si el valor contiene explícitamente el día en texto
                 const txtNorm = normalizarTexto(valorMarca);
                 if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
                 if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
                 if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
                 if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
 
-                // B. Conversión a fecha en formato Latino DD/MM/YYYY
                 const fecha = parsearFechaLatino(valorMarca);
                 if (fecha) {
-                    const numDia = fecha.getDay(); // 0: Dom, 4: Jue, 5: Vie, 6: Sáb
+                    const numDia = fecha.getDay(); 
                     if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
                     if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
                     if (diaBusqueda === 'SABADO' && numDia === 6) return true;
@@ -586,52 +661,42 @@
             });
 
             if (datosFiltrados.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="${encabezadosVisibles.length}">No hay partidos registrados para el día seleccionado.</td>`;
-                cuerpoTabla.appendChild(tr);
+                cuerpoTabla.innerHTML = `<tr><td colspan="${encabezadosVisibles.length}">No hay partidos registrados para los filtros seleccionados.</td></tr>`;
                 return;
             }
 
-            // Renderizar filas de datos
-            datosFiltrados.forEach(fila => {
-                const tr = document.createElement('tr');
+            let HTMLFilas = '';
 
+            datosFiltrados.forEach(fila => {
                 const analisisGanador = obtenerGanadorEspecifico(fila, encabezadosVisibles);
+                let celdasHTML = '';
 
                 encabezadosVisibles.forEach(header => {
-                    const td = document.createElement('td');
                     let valor = (fila[header] !== undefined && fila[header] !== null && fila[header] !== "") ? fila[header] : "-";
-                    
-                    td.setAttribute('data-label', header);
-
                     const headerUpper = normalizarTexto(header);
                     const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
 
-                    // 1. Marca equipo ganador
+                    let contenidoTd = valor;
+
                     if (analisisGanador.ganadorHeader && analisisGanador.ganadorHeader === header && valor !== "-") {
-                        td.innerHTML = `<span class="equipo-ganador">🏆 ${valor}</span>`;
+                        contenidoTd = `<span class="equipo-ganador">🏆 ${valor}</span>`;
                     } 
-                    // 2. Marca puntos del ganador
                     else if (analisisGanador.puntosGanadorHeader && header === analisisGanador.puntosGanadorHeader && valor !== "-") {
-                        td.innerHTML = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
+                        contenidoTd = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
                     } 
-                    // 3. Puntos/Goles normales
                     else if (esPuntos && valor !== "-") {
-                        td.innerHTML = `<span class="badge-puntos">${valor}</span>`;
-                    } 
-                    // 4. Texto normal
-                    else {
-                        td.textContent = valor;
+                        contenidoTd = `<span class="badge-puntos">${valor}</span>`;
                     }
 
-                    tr.appendChild(td);
+                    celdasHTML += `<td data-label="${header}">${contenidoTd}</td>`;
                 });
 
-                cuerpoTabla.appendChild(tr);
+                HTMLFilas += `<tr>${celdasHTML}</tr>`;
             });
+
+            cuerpoTabla.innerHTML = HTMLFilas;
         }
 
-        // Determinar cuál equipo ganó
         function obtenerGanadorEspecifico(fila, encabezados) {
             let club1Header = null, puntos1 = null, puntos1Header = null;
             let club2Header = null, puntos2 = null, puntos2Header = null;
@@ -666,7 +731,6 @@
             return { ganadorHeader: null, puntosGanadorHeader: null };
         }
 
-        // Carga inicial
         cargarDatos();
         setInterval(cargarDatos, TIEMPO_REFRESCO_MS);
     </script>
