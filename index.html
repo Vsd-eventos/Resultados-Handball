@@ -1,283 +1,674 @@
-<script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_RBBTGiCE9demgpqkmvIyAA1vu_3PBAKqVuU7TjbbOiVf-CmmL0sO9dKTRQIP_pYB/exec'; 
-    // Subimos a 2 minutos para proteger la cuotas de Google Apps Script
-    const TIEMPO_REFRESCO_MS = 120000; 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSD Eventos - 31° Torneo Internacional de Handball</title>
+    <!-- Importamos fuentes desde Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- VARIABLES Y PALETA DE COLORES --- */
+        :root {
+            --color-negro: #121212;
+            --color-negro-card: #1e1e1e;
+            --color-rojo: #e31d2b;
+            --color-rojo-hover: #b8121f;
+            --color-ganador: #1b5e20; /* Verde texto ganador */
+            --color-ganador-bg: #e8f5e9; /* Fondo verde claro */
+            --color-ganador-border: #81c784;
+            --color-puntos-ganador: #d32f2f; /* Rojo destacado para puntos altos */
+            --color-blanco: #ffffff;
+            --color-gris-fondo: #152241; /* Color de fondo */
+            --color-gris-linea: #e2e8f0;
+            --fuente-principal: 'Oswald', sans-serif;
+            --fuente-secundaria: 'Roboto', sans-serif;
+        }
 
-    let todosLosDatos = [];
-    let diaSeleccionado = 'TODOS';
-    let categoriaSeleccionada = 'TODAS';
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    function normalizarTexto(txt) {
-        if (!txt) return "";
-        return String(txt)
-            .toUpperCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim();
-    }
+        body {
+            font-family: var(--fuente-secundaria);
+            background-color: var(--color-gris-fondo);
+            color: var(--color-negro);
+            padding-bottom: 50px;
+        }
 
-    function esMarcaTemporal(nombreColumna) {
-        if (!nombreColumna) return false;
-        const col = normalizarTexto(nombreColumna);
-        return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
-    }
+        /* --- ENCABEZADO (HEADER) --- */
+        header {
+            background-color: var(--color-negro);
+            color: var(--color-blanco);
+            padding: 15px 20px;
+            border-bottom: 5px solid var(--color-rojo);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+        }
 
-    function esColumnaCategoria(nombreColumna) {
-        if (!nombreColumna) return false;
-        const col = normalizarTexto(nombreColumna);
-        return col.includes("CATEGORIA") || col.includes("CATEGORÍA");
-    }
+        /* LOGO CUADRADO ROJO (#de020a) CON TEXTO VSD EVENTOS */
+        .logo-cuadrado {
+            background-color: #de020a;
+            color: var(--color-blanco);
+            width: 58px;
+            height: 58px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            font-family: var(--fuente-principal);
+            line-height: 0.95;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
 
-    function mostrarEstado(mensaje, esError = false) {
-        const divEstado = document.getElementById('estado');
-        if (!mensaje) {
-            divEstado.classList.add('oculto');
-            divEstado.classList.remove('cargando');
-        } else {
-            divEstado.textContent = mensaje;
-            divEstado.classList.remove('oculto');
-            if (esError) {
+        .logo-cuadrado .vsd-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .logo-cuadrado .eventos-text {
+            font-size: 0.62rem;
+            font-weight: 500;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        header h1 {
+            font-family: var(--fuente-principal);
+            font-weight: 700;
+            font-size: 2.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            line-height: 1.2;
+            text-align: left;
+        }
+
+        header h1 span.rojo {
+            color: var(--color-rojo);
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* --- FILTROS POR DÍA --- */
+        .filtros-dias {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 25px 0 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-dia {
+            background-color: var(--color-blanco);
+            color: var(--color-negro);
+            border: 2px solid var(--color-negro);
+            font-family: var(--fuente-principal);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-dia:hover {
+            background-color: var(--color-rojo);
+            color: var(--color-blanco);
+            border-color: var(--color-rojo);
+        }
+
+        .btn-dia.activo {
+            background-color: var(--color-rojo);
+            color: var(--color-blanco);
+            border-color: var(--color-rojo);
+            box-shadow: 0 4px 10px rgba(227, 29, 43, 0.35);
+        }
+
+        /* --- SECCIÓN DE ESTADO --- */
+        #estado {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 18px;
+            font-weight: 500;
+            display: block;
+        }
+
+        #estado.cargando {
+            color: #ff6b6b;
+            font-weight: bold;
+            animation: parpadeo 1s infinite;
+        }
+
+        #estado.oculto {
+            display: none !important;
+        }
+
+        @keyframes parpadeo {
+            50% { opacity: 0.4; }
+        }
+
+        /* --- CONTENEDOR DE LA TABLA (DESKTOP) --- */
+        .tabla-card {
+            background-color: var(--color-blanco);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+            border: 1px solid var(--color-gris-linea);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--fuente-secundaria);
+        }
+
+        thead {
+            background-color: var(--color-negro);
+            color: var(--color-blanco);
+            font-family: var(--fuente-principal);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        th {
+            padding: 14px 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05rem;
+            border-bottom: 3px solid var(--color-rojo);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--color-gris-linea);
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        tbody tr:hover {
+            background-color: #fff5f5;
+        }
+
+        td {
+            padding: 12px 14px;
+            color: var(--color-negro);
+            font-size: 0.95rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* --- ESTILOS DE DESTACADO DE GANADOR Y PUNTOS --- */
+        .equipo-ganador {
+            font-weight: 700 !important;
+            color: var(--color-ganador) !important;
+            background-color: var(--color-ganador-bg) !important;
+            border: 2px solid var(--color-ganador-border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(46, 125, 50, 0.15);
+        }
+
+        .badge-puntos {
+            display: inline-block;
+            background-color: var(--color-negro);
+            color: var(--color-blanco);
+            font-family: var(--fuente-principal);
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        .puntos-ganadores {
+            background-color: var(--color-rojo) !important;
+            color: var(--color-blanco) !important;
+            box-shadow: 0 2px 8px rgba(227, 29, 43, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* --- VISTA MÓVIL (CARDS TARJETAS DEPORTIVAS) --- */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 15px;
+            }
+
+            .logo-cuadrado {
+                width: 48px;
+                height: 48px;
+            }
+
+            .logo-cuadrado .vsd-text {
+                font-size: 1.1rem;
+            }
+
+            .logo-cuadrado .eventos-text {
+                font-size: 0.52rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            .btn-dia {
+                padding: 7px 16px;
+                font-size: 0.9rem;
+            }
+
+            .tabla-card {
+                background: transparent;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+            }
+
+            .table-responsive {
+                overflow-x: visible;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+                width: 100%;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tbody tr {
+                margin-bottom: 16px;
+                background-color: var(--color-blanco) !important;
+                border: 1px solid var(--color-gris-linea);
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                padding: 12px 16px;
+            }
+
+            td {
+                border: none;
+                padding: 8px 0;
+                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px dashed var(--color-gris-linea);
+                font-size: 0.95rem;
+            }
+
+            td:last-child {
+                border-bottom: none;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-family: var(--fuente-principal);
+                font-weight: 700;
+                text-transform: uppercase;
+                color: #666;
+                font-size: 0.88rem;
+                text-align: left;
+                padding-right: 12px;
+                flex-shrink: 0;
+            }
+
+            .equipo-ganador {
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-cuadrado">
+            <span class="vsd-text">VSD</span>
+            <span class="eventos-text">eventos</span>
+        </div>
+        <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- Filtros por día -->
+        <div class="filtros-dias">
+            <button class="btn-dia" onclick="filtrarPorDia('JUEVES')">Jueves</button>
+            <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
+            <button class="btn-dia" onclick="filtrarPorDia('SÁBADO')">Sábado</button>
+            <button class="btn-dia" onclick="filtrarPorDia('DOMINGO')">Domingo</button>
+            <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos</button>
+        </div>
+
+        <div id="estado" class="cargando">Cargando resultados...</div>
+
+        <div class="tabla-card">
+            <div class="table-responsive">
+                <table id="tabla-resultados">
+                    <thead>
+                        <tr id="headers">
+                            <!-- Se generan dinámicamente según las columnas del Sheet -->
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla">
+                        <!-- Los datos se generarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_RBBTGiCE9demgpqkmvIyAA1vu_3PBAKqVuU7TjbbOiVf-CmmL0sO9dKTRQIP_pYB/exec'; 
+        const TIEMPO_REFRESCO_MS = 60000;
+
+        let todosLosDatos = [];
+        let diaSeleccionado = 'TODOS';
+
+        // Normalizar texto para comparaciones
+        function normalizarTexto(txt) {
+            if (!txt) return "";
+            return String(txt)
+                .toUpperCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .trim();
+        }
+
+        // Comprobar si la columna corresponde a la Marca Temporal o ID
+        function esMarcaTemporal(nombreColumna) {
+            if (!nombreColumna) return false;
+            const col = normalizarTexto(nombreColumna);
+            return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
+        }
+
+        // Mostrar / Ocultar el estado limpiamente
+        function mostrarEstado(mensaje, esError = false) {
+            const divEstado = document.getElementById('estado');
+            if (!mensaje) {
+                divEstado.classList.add('oculto');
                 divEstado.classList.remove('cargando');
-                divEstado.style.color = '#ff6b6b';
             } else {
-                divEstado.classList.add('cargando');
-                divEstado.style.color = '#ffffff';
-            }
-        }
-    }
-
-    async function fetchConTimeout(resource, options = {}) {
-        const { timeout = 8000 } = options;
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), timeout);
-
-        const response = await fetch(resource, {
-            ...options,
-            signal: controller.signal
-        });
-        clearTimeout(id);
-        return response;
-    }
-
-    async function cargarDatos() {
-        // Carga rápida desde caché si existe
-        const datosCache = localStorage.getItem('vsd_resultados_cache');
-        if (datosCache && todosLosDatos.length === 0) {
-            try {
-                todosLosDatos = JSON.parse(datosCache);
-                renderizarTabla();
-                mostrarEstado(null);
-            } catch (e) {
-                console.warn('Error leyendo caché local');
-            }
-        }
-
-        if (todosLosDatos.length === 0) {
-            mostrarEstado('Cargando resultados...');
-        }
-
-        try {
-            const cacheBusterUrl = `${WEB_APP_URL}?t=${new Date().getTime()}`;
-            const response = await fetchConTimeout(cacheBusterUrl, { timeout: 10000 });
-            const datos = await response.json();
-
-            if (!datos || datos.length === 0) {
-                if (todosLosDatos.length === 0) {
-                    mostrarEstado('No hay datos disponibles en la planilla.', true);
+                divEstado.textContent = mensaje;
+                divEstado.classList.remove('oculto');
+                if (esError) {
+                    divEstado.classList.remove('cargando');
+                    divEstado.style.color = '#ff6b6b';
+                } else {
+                    divEstado.classList.add('cargando');
+                    divEstado.style.color = '#ffffff';
                 }
+            }
+        }
+
+        // Fetch optimizado con Timeout (8 segundos max)
+        async function fetchConTimeout(resource, options = {}) {
+            const { timeout = 8000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            return response;
+        }
+
+        // Cargar datos
+        async function cargarDatos() {
+            // Solo mostramos "cargando" explícito si aún no tenemos datos en pantalla
+            if (todosLosDatos.length === 0) {
+                mostrarEstado('Cargando resultados...');
+            }
+
+            try {
+                const cacheBusterUrl = `${WEB_APP_URL}?t=${new Date().getTime()}`;
+                const response = await fetchConTimeout(cacheBusterUrl, { timeout: 10000 });
+                const datos = await response.json();
+
+                if (!datos || datos.length === 0) {
+                    if (todosLosDatos.length === 0) {
+                        mostrarEstado('No hay datos disponibles en la planilla.', true);
+                    }
+                    return;
+                }
+
+                todosLosDatos = datos;
+                
+                // Ocultamos cualquier mensaje de estado o error inmediatamente
+                mostrarEstado(null);
+                renderizarTabla();
+
+            } catch (error) {
+                console.error('Error al obtener datos:', error);
+                
+                // Si ya teníamos datos mostrados previamente, no interrumpimos la pantalla con un texto rojo feo
+                if (todosLosDatos.length === 0) {
+                    mostrarEstado('Error al cargar resultados. Reintentando...', true);
+                }
+            }
+        }
+
+        // Cambiar filtro de día
+        function filtrarPorDia(dia) {
+            diaSeleccionado = dia;
+            
+            document.querySelectorAll('.btn-dia').forEach(btn => {
+                if (normalizarTexto(btn.textContent) === normalizarTexto(dia)) {
+                    btn.classList.add('activo');
+                } else {
+                    btn.classList.remove('activo');
+                }
+            });
+
+            renderizarTabla();
+        }
+
+        // Parseador con prioridad latina DD/MM/YYYY
+        function parsearFechaLatino(fechaStr) {
+            if (!fechaStr) return null;
+
+            const str = String(fechaStr).trim();
+
+            // 1. Detección de formato DD/MM/YYYY HH:mm:ss o DD-MM-YYYY
+            const coincidenciaFormato = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+            if (coincidenciaFormato) {
+                const dia = parseInt(coincidenciaFormato[1], 10);
+                const mes = parseInt(coincidenciaFormato[2], 10) - 1; 
+                let anio = parseInt(coincidenciaFormato[3], 10);
+                if (anio < 100) anio += 2000;
+
+                const fechaLocal = new Date(anio, mes, dia);
+                if (!isNaN(fechaLocal.getTime())) return fechaLocal;
+            }
+
+            // 2. Fallback para fechas ISO (YYYY-MM-DD)
+            const coincidenciaISO = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (coincidenciaISO) {
+                const anio = parseInt(coincidenciaISO[1], 10);
+                const mes = parseInt(coincidenciaISO[2], 10) - 1;
+                const dia = parseInt(coincidenciaISO[3], 10);
+
+                const fechaLocal = new Date(anio, mes, dia);
+                if (!isNaN(fechaLocal.getTime())) return fechaLocal;
+            }
+
+            // 3. Parser nativo como último recurso
+            const fNativa = new Date(str);
+            if (!isNaN(fNativa.getTime())) return fNativa;
+
+            return null;
+        }
+
+        // Renderizar Tabla / Tarjetas
+        function renderizarTabla() {
+            const headersRow = document.getElementById('headers');
+            const cuerpoTabla = document.getElementById('cuerpo-tabla');
+
+            headersRow.innerHTML = '';
+            cuerpoTabla.innerHTML = '';
+
+            if (todosLosDatos.length === 0) return;
+
+            const primerObjeto = todosLosDatos[0];
+            const keys = Object.keys(primerObjeto);
+            
+            // Identificar columna de referencia (Marca Temporal o la primera columna [0])
+            const keyMarcaTemporal = keys.find(k => esMarcaTemporal(k)) || keys[0];
+
+            // EXCLUIR "Marca Temporal" de los encabezados visibles en pantalla
+            const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
+
+            // Renderizar encabezados TH visibles
+            encabezadosVisibles.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headersRow.appendChild(th);
+            });
+
+            // Filtrado por día basándonos en la "Marca Temporal" (Columna [0])
+            const diaBusqueda = normalizarTexto(diaSeleccionado);
+            
+            const datosFiltrados = todosLosDatos.filter(fila => {
+                if (diaBusqueda === 'TODOS') return true;
+
+                const valorMarca = fila[keyMarcaTemporal];
+                if (!valorMarca) return false;
+
+                // A. Si el valor contiene explícitamente el día en texto
+                const txtNorm = normalizarTexto(valorMarca);
+                if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
+                if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
+                if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
+                if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
+
+                // B. Conversión a fecha en formato Latino DD/MM/YYYY
+                const fecha = parsearFechaLatino(valorMarca);
+                if (fecha) {
+                    const numDia = fecha.getDay(); // 0: Dom, 4: Jue, 5: Vie, 6: Sáb
+                    if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
+                    if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
+                    if (diaBusqueda === 'SABADO' && numDia === 6) return true;
+                    if (diaBusqueda === 'DOMINGO' && numDia === 0) return true;
+                }
+
+                return false;
+            });
+
+            if (datosFiltrados.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="${encabezadosVisibles.length}">No hay partidos registrados para el día seleccionado.</td>`;
+                cuerpoTabla.appendChild(tr);
                 return;
             }
 
-            // Guardar en caché local y actualizar memoria
-            todosLosDatos = datos;
-            localStorage.setItem('vsd_resultados_cache', JSON.stringify(datos));
-            
-            mostrarEstado(null);
-            renderizarTabla();
+            // Renderizar filas de datos
+            datosFiltrados.forEach(fila => {
+                const tr = document.createElement('tr');
 
-        } catch (error) {
-            console.error('Error al obtener datos:', error);
-            // Si falla pero tenemos datos cargados previa o mediante caché, mantenemos la tabla limpia
-            if (todosLosDatos.length > 0) {
-                mostrarEstado(null);
-            } else {
-                mostrarEstado('Error de conexión. Intentando reconectar...', true);
-            }
-        }
-    }
+                const analisisGanador = obtenerGanadorEspecifico(fila, encabezadosVisibles);
 
-    function filtrarPorDia(dia) {
-        diaSeleccionado = dia;
-        document.querySelectorAll('.btn-dia').forEach(btn => {
-            if (normalizarTexto(btn.textContent).includes(normalizarTexto(dia))) {
-                btn.classList.add('activo');
-            } else {
-                btn.classList.remove('activo');
-            }
-        });
-        renderizarTabla();
-    }
+                encabezadosVisibles.forEach(header => {
+                    const td = document.createElement('td');
+                    let valor = (fila[header] !== undefined && fila[header] !== null && fila[header] !== "") ? fila[header] : "-";
+                    
+                    td.setAttribute('data-label', header);
 
-    function filtrarPorCategoria(cat) {
-        categoriaSeleccionada = cat;
-        renderizarTabla();
-    }
+                    const headerUpper = normalizarTexto(header);
+                    const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
 
-    function parsearFechaLatino(fechaStr) {
-        if (!fechaStr) return null;
-        const str = String(fechaStr).trim();
+                    // 1. Marca equipo ganador
+                    if (analisisGanador.ganadorHeader && analisisGanador.ganadorHeader === header && valor !== "-") {
+                        td.innerHTML = `<span class="equipo-ganador">🏆 ${valor}</span>`;
+                    } 
+                    // 2. Marca puntos del ganador
+                    else if (analisisGanador.puntosGanadorHeader && header === analisisGanador.puntosGanadorHeader && valor !== "-") {
+                        td.innerHTML = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
+                    } 
+                    // 3. Puntos/Goles normales
+                    else if (esPuntos && valor !== "-") {
+                        td.innerHTML = `<span class="badge-puntos">${valor}</span>`;
+                    } 
+                    // 4. Texto normal
+                    else {
+                        td.textContent = valor;
+                    }
 
-        const coincidenciaFormato = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-        if (coincidenciaFormato) {
-            const dia = parseInt(coincidenciaFormato[1], 10);
-            const mes = parseInt(coincidenciaFormato[2], 10) - 1; 
-            let anio = parseInt(coincidenciaFormato[3], 10);
-            if (anio < 100) anio += 2000;
-            const fechaLocal = new Date(anio, mes, dia);
-            if (!isNaN(fechaLocal.getTime())) return fechaLocal;
+                    tr.appendChild(td);
+                });
+
+                cuerpoTabla.appendChild(tr);
+            });
         }
 
-        const coincidenciaISO = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-        if (coincidenciaISO) {
-            const anio = parseInt(coincidenciaISO[1], 10);
-            const mes = parseInt(coincidenciaISO[2], 10) - 1;
-            const dia = parseInt(coincidenciaISO[3], 10);
-            const fechaLocal = new Date(anio, mes, dia);
-            if (!isNaN(fechaLocal.getTime())) return fechaLocal;
-        }
+        // Determinar cuál equipo ganó
+        function obtenerGanadorEspecifico(fila, encabezados) {
+            let club1Header = null, puntos1 = null, puntos1Header = null;
+            let club2Header = null, puntos2 = null, puntos2Header = null;
 
-        const fNativa = new Date(str);
-        if (!isNaN(fNativa.getTime())) return fNativa;
-
-        return null;
-    }
-
-    // RENDERIZADO OPTIMIZADO (Sin reflows continuos)
-    function renderizarTabla() {
-        const headersRow = document.getElementById('headers');
-        const cuerpoTabla = document.getElementById('cuerpo-tabla');
-
-        if (todosLosDatos.length === 0) {
-            headersRow.innerHTML = '';
-            cuerpoTabla.innerHTML = '';
-            return;
-        }
-
-        const primerObjeto = todosLosDatos[0];
-        const keys = Object.keys(primerObjeto);
-        const keyMarcaTemporal = keys.find(k => esMarcaTemporal(k)) || keys[0];
-        const keyCategoria = keys.find(k => esColumnaCategoria(k));
-
-        const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
-
-        // Construcción rápida de headers en HTML string
-        headersRow.innerHTML = encabezadosVisibles.map(h => `<th>${h}</th>`).join('');
-
-        const diaBusqueda = normalizarTexto(diaSeleccionado);
-        const catBusqueda = normalizarTexto(categoriaSeleccionada);
-        
-        const datosFiltrados = todosLosDatos.filter(fila => {
-            if (catBusqueda !== 'TODAS' && keyCategoria) {
-                const valorCatFila = normalizarTexto(fila[keyCategoria]);
-                if (!valorCatFila.includes(catBusqueda)) return false;
-            }
-
-            if (diaBusqueda === 'TODOS') return true;
-
-            const valorMarca = fila[keyMarcaTemporal];
-            if (!valorMarca) return false;
-
-            const txtNorm = normalizarTexto(valorMarca);
-            if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
-            if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
-            if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
-            if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
-
-            const fecha = parsearFechaLatino(valorMarca);
-            if (fecha) {
-                const numDia = fecha.getDay(); 
-                if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
-                if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
-                if (diaBusqueda === 'SABADO' && numDia === 6) return true;
-                if (diaBusqueda === 'DOMINGO' && numDia === 0) return true;
-            }
-
-            return false;
-        });
-
-        if (datosFiltrados.length === 0) {
-            cuerpoTabla.innerHTML = `<tr><td colspan="${encabezadosVisibles.length}">No hay partidos registrados para los filtros seleccionados.</td></tr>`;
-            return;
-        }
-
-        // Ensamblado en memoria del cuerpo completo de la tabla
-        let HTMLFilas = '';
-
-        datosFiltrados.forEach(fila => {
-            const analisisGanador = obtenerGanadorEspecifico(fila, encabezadosVisibles);
-            let celdasHTML = '';
-
-            encabezadosVisibles.forEach(header => {
-                let valor = (fila[header] !== undefined && fila[header] !== null && fila[header] !== "") ? fila[header] : "-";
-                const headerUpper = normalizarTexto(header);
-                const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
-
-                let contenidoTd = valor;
-
-                if (analisisGanador.ganadorHeader && analisisGanador.ganadorHeader === header && valor !== "-") {
-                    contenidoTd = `<span class="equipo-ganador">🏆 ${valor}</span>`;
-                } 
-                else if (analisisGanador.puntosGanadorHeader && header === analisisGanador.puntosGanadorHeader && valor !== "-") {
-                    contenidoTd = `<span class="badge-puntos puntos-ganadores">${valor}</span>`;
-                } 
-                else if (esPuntos && valor !== "-") {
-                    contenidoTd = `<span class="badge-puntos">${valor}</span>`;
+            encabezados.forEach(h => {
+                const name = normalizarTexto(h);
+                if (name.includes('CLUB 1') || name.includes('EQUIPO 1') || name.includes('LOCAL')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                        puntos1 = parseInt(fila[h], 10);
+                        puntos1Header = h;
+                    } else {
+                        club1Header = h;
+                    }
+                } else if (name.includes('CLUB 2') || name.includes('EQUIPO 2') || name.includes('VISITANTE')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                        puntos2 = parseInt(fila[h], 10);
+                        puntos2Header = h;
+                    } else {
+                        club2Header = h;
+                    }
                 }
-
-                celdasHTML += `<td data-label="${header}">${contenidoTd}</td>`;
             });
 
-            HTMLFilas += `<tr>${celdasHTML}</tr>`;
-        });
-
-        // Única inserción masiva al DOM
-        cuerpoTabla.innerHTML = HTMLFilas;
-    }
-
-    function obtenerGanadorEspecifico(fila, encabezados) {
-        let club1Header = null, puntos1 = null, puntos1Header = null;
-        let club2Header = null, puntos2 = null, puntos2Header = null;
-
-        encabezados.forEach(h => {
-            const name = normalizarTexto(h);
-            if (name.includes('CLUB 1') || name.includes('EQUIPO 1') || name.includes('LOCAL')) {
-                if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
-                    puntos1 = parseInt(fila[h], 10);
-                    puntos1Header = h;
-                } else {
-                    club1Header = h;
-                }
-            } else if (name.includes('CLUB 2') || name.includes('EQUIPO 2') || name.includes('VISITANTE')) {
-                if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
-                    puntos2 = parseInt(fila[h], 10);
-                    puntos2Header = h;
-                } else {
-                    club2Header = h;
+            if (!isNaN(puntos1) && !isNaN(puntos2)) {
+                if (puntos1 > puntos2) {
+                    return { ganadorHeader: club1Header, puntosGanadorHeader: puntos1Header };
+                } else if (puntos2 > puntos1) {
+                    return { ganadorHeader: club2Header, puntosGanadorHeader: puntos2Header };
                 }
             }
-        });
 
-        if (!isNaN(puntos1) && !isNaN(puntos2)) {
-            if (puntos1 > puntos2) {
-                return { ganadorHeader: club1Header, puntosGanadorHeader: puntos1Header };
-            } else if (puntos2 > puntos1) {
-                return { ganadorHeader: club2Header, puntosGanadorHeader: puntos2Header };
-            }
+            return { ganadorHeader: null, puntosGanadorHeader: null };
         }
 
-        return { ganadorHeader: null, puntosGanadorHeader: null };
-    }
-
-    cargarDatos();
-    setInterval(cargarDatos, TIEMPO_REFRESCO_MS);
-</script>
+        // Carga inicial
+        cargarDatos();
+        setInterval(cargarDatos, TIEMPO_REFRESCO_MS);
+    </script>
+</body>
+</html>
