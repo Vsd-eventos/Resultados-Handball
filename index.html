@@ -11,13 +11,11 @@
         /* --- VARIABLES Y PALETA DE COLORES --- */
         :root {
             --color-negro: #121212;
-            --color-negro-card: #1e1e1e;
             --color-rojo: #e31d2b;
             --color-rojo-hover: #b8121f;
             --color-ganador: #1b5e20;
             --color-ganador-bg: #e8f5e9;
             --color-ganador-border: #81c784;
-            --color-puntos-ganador: #d32f2f;
             --color-blanco: #ffffff;
             --color-gris-fondo: #152241;
             --color-gris-linea: #e2e8f0;
@@ -189,21 +187,10 @@
             color: #ffffff;
             margin-bottom: 18px;
             font-weight: 500;
-            display: block;
-        }
-
-        #estado.cargando {
-            color: #ff6b6b;
-            font-weight: bold;
-            animation: parpadeo 1s infinite;
         }
 
         #estado.oculto {
             display: none !important;
-        }
-
-        @keyframes parpadeo {
-            50% { opacity: 0.4; }
         }
 
         /* --- CONTENEDOR DE LA TABLA (DESKTOP) --- */
@@ -295,7 +282,7 @@
             transform: scale(1.05);
         }
 
-        /* --- VISTA MÓVIL (CARDS TARJETAS DEPORTIVAS) --- */
+        /* --- VISTA MÓVIL (TARJETAS DEPORTIVAS) --- */
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -304,40 +291,21 @@
                 padding: 12px 15px;
             }
 
-            .header-brand {
-                width: 100%;
-            }
+            .header-brand { width: 100%; }
 
-            .contenedor-categoria-filtro {
-                width: 100%;
-            }
+            .contenedor-categoria-filtro { width: 100%; }
 
-            .select-categoria {
-                width: 100%;
-                text-align: center;
-            }
+            .select-categoria { width: 100%; text-align: center; }
 
-            .logo-cuadrado {
-                width: 48px;
-                height: 48px;
-            }
+            .logo-cuadrado { width: 48px; height: 48px; }
 
-            .logo-cuadrado .vsd-text {
-                font-size: 1.1rem;
-            }
+            .logo-cuadrado .vsd-text { font-size: 1.1rem; }
 
-            .logo-cuadrado .eventos-text {
-                font-size: 0.52rem;
-            }
+            .logo-cuadrado .eventos-text { font-size: 0.52rem; }
 
-            header h1 {
-                font-size: 1.2rem;
-            }
+            header h1 { font-size: 1.2rem; }
 
-            .btn-dia {
-                padding: 7px 16px;
-                font-size: 0.9rem;
-            }
+            .btn-dia { padding: 7px 16px; font-size: 0.9rem; }
 
             .tabla-card {
                 background: transparent;
@@ -346,18 +314,14 @@
                 border-radius: 0;
             }
 
-            .table-responsive {
-                overflow-x: visible;
-            }
+            .table-responsive { overflow-x: visible; }
 
             table, thead, tbody, th, td, tr {
                 display: block;
                 width: 100%;
             }
 
-            thead {
-                display: none;
-            }
+            thead { display: none; }
 
             tbody tr {
                 margin-bottom: 16px;
@@ -379,9 +343,7 @@
                 font-size: 0.95rem;
             }
 
-            td:last-child {
-                border-bottom: none;
-            }
+            td:last-child { border-bottom: none; }
 
             td::before {
                 content: attr(data-label);
@@ -395,9 +357,7 @@
                 flex-shrink: 0;
             }
 
-            .equipo-ganador {
-                justify-content: flex-end;
-            }
+            .equipo-ganador { justify-content: flex-end; }
         }
     </style>
 </head>
@@ -412,7 +372,6 @@
             <h1>31° Torneo Internacional de <span class="rojo">Handball</span></h1>
         </div>
 
-        <!-- DROPDOWN DESPLEGABLE DE CATEGORÍA -->
         <div class="contenedor-categoria-filtro">
             <select id="select-categoria" class="select-categoria" onchange="filtrarPorCategoria(this.value)">
                 <option value="TODAS">🏆 Todas las Categorías</option>
@@ -427,8 +386,6 @@
     </header>
 
     <div class="main-container">
-        
-        <!-- Filtros por día -->
         <div class="filtros-dias">
             <button class="btn-dia" onclick="filtrarPorDia('JUEVES')">Jueves</button>
             <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
@@ -437,27 +394,24 @@
             <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos los Días</button>
         </div>
 
-        <div id="estado" class="cargando">Cargando resultados...</div>
+        <div id="estado">Cargando resultados...</div>
 
         <div class="tabla-card">
             <div class="table-responsive">
                 <table id="tabla-resultados">
                     <thead>
-                        <tr id="headers">
-                            <!-- Se generan dinámicamente -->
-                        </tr>
+                        <tr id="headers"></tr>
                     </thead>
-                    <tbody id="cuerpo-tabla">
-                        <!-- Los datos se generarán dinámicamente -->
-                    </tbody>
+                    <tbody id="cuerpo-tabla"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx_RBBTGiCE9demgpqkmvIyAA1vu_3PBAKqVuU7TjbbOiVf-CmmL0sO9dKTRQIP_pYB/exec'; 
-        const TIEMPO_REFRESCO_MS = 120000; // Refresco optimizado a 2 min
+        // ENLACE DIRECTO CSV PROPORCIONADO
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrPGhTdj1zQYwy6u10chQZSP2QvQ2enVWMk_kTAx0nxN3ZgZCpc64sFZ_d8kXNFlby5RQtayeGndf/pub?gid=1824343995&single=true&output=csv'; 
+        const TIEMPO_REFRESCO_MS = 20000; // Refresco automático cada 20 segundos
 
         let todosLosDatos = [];
         let diaSeleccionado = 'TODOS';
@@ -465,99 +419,59 @@
 
         function normalizarTexto(txt) {
             if (!txt) return "";
-            return String(txt)
-                .toUpperCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .trim();
+            return String(txt).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         }
 
-        function esMarcaTemporal(nombreColumna) {
-            if (!nombreColumna) return false;
-            const col = normalizarTexto(nombreColumna);
-            return col.includes("MARCA") || col.includes("TEMPORAL") || col.includes("TIMESTAMP") || col.includes("FECHA") || col.includes("REGISTRO");
-        }
+        // Parseador ligero y seguro para CSV
+        function csvToJSON(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            if (lines.length < 2) return [];
+            
+            const headers = lines[0].split(',').map(h => h.replace(/^"(.*)"$/, '$1').trim());
+            const result = [];
 
-        function esColumnaCategoria(nombreColumna) {
-            if (!nombreColumna) return false;
-            const col = normalizarTexto(nombreColumna);
-            return col.includes("CATEGORIA") || col.includes("CATEGORÍA");
-        }
-
-        function mostrarEstado(mensaje, esError = false) {
-            const divEstado = document.getElementById('estado');
-            if (!divEstado) return;
-            if (!mensaje) {
-                divEstado.classList.add('oculto');
-                divEstado.classList.remove('cargando');
-            } else {
-                divEstado.textContent = mensaje;
-                divEstado.classList.remove('oculto');
-                if (esError) {
-                    divEstado.classList.remove('cargando');
-                    divEstado.style.color = '#ff6b6b';
-                } else {
-                    divEstado.classList.add('cargando');
-                    divEstado.style.color = '#ffffff';
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                // Expresión regular para separar comas respetando comillas
+                const currentline = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                const obj = {};
+                
+                for (let j = 0; j < headers.length; j++) {
+                    let val = currentline[j] ? currentline[j].trim() : "";
+                    obj[headers[j]] = val.replace(/^"(.*)"$/, '$1');
                 }
+                result.push(obj);
             }
-        }
-
-        async function fetchConTimeout(resource, options = {}) {
-            const { timeout = 8000 } = options;
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-
-            const response = await fetch(resource, {
-                ...options,
-                signal: controller.signal
-            });
-            clearTimeout(id);
-            return response;
+            return result;
         }
 
         async function cargarDatos() {
-            // Revisa si hay datos guardados previamente en la memoria local
+            // Lectura instantánea desde almacenamiento local si existe
             const datosCache = localStorage.getItem('vsd_resultados_cache');
             if (datosCache && todosLosDatos.length === 0) {
                 try {
                     todosLosDatos = JSON.parse(datosCache);
                     renderizarTabla();
-                    mostrarEstado(null);
-                } catch (e) {
-                    console.warn('Error leyendo caché local');
-                }
-            }
-
-            if (todosLosDatos.length === 0) {
-                mostrarEstado('Cargando resultados...');
+                    document.getElementById('estado').classList.add('oculto');
+                } catch (e) {}
             }
 
             try {
-                const cacheBusterUrl = `${WEB_APP_URL}?t=${new Date().getTime()}`;
-                const response = await fetchConTimeout(cacheBusterUrl, { timeout: 10000 });
-                const datos = await response.json();
+                const response = await fetch(`${CSV_URL}&t=${Date.now()}`);
+                const csvText = await response.text();
+                const datos = csvToJSON(csvText);
 
-                if (!datos || datos.length === 0) {
-                    if (todosLosDatos.length === 0) {
-                        mostrarEstado('No hay datos disponibles en la planilla.', true);
-                    }
-                    return;
+                if (datos && datos.length > 0) {
+                    todosLosDatos = datos;
+                    localStorage.setItem('vsd_resultados_cache', JSON.stringify(datos));
+                    renderizarTabla();
                 }
-
-                todosLosDatos = datos;
-                localStorage.setItem('vsd_resultados_cache', JSON.stringify(datos));
-                
-                mostrarEstado(null);
-                renderizarTabla();
+                document.getElementById('estado').classList.add('oculto');
 
             } catch (error) {
-                console.error('Error al obtener datos:', error);
-                if (todosLosDatos.length > 0) {
-                    mostrarEstado(null);
-                } else {
-                    mostrarEstado('Error de conexión. Intentando reconectar...', true);
-                }
+                console.warn('Conexión lenta, usando datos en caché.');
+                document.getElementById('estado').classList.add('oculto');
             }
         }
 
@@ -591,19 +505,6 @@
                 const fechaLocal = new Date(anio, mes, dia);
                 if (!isNaN(fechaLocal.getTime())) return fechaLocal;
             }
-
-            const coincidenciaISO = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-            if (coincidenciaISO) {
-                const anio = parseInt(coincidenciaISO[1], 10);
-                const mes = parseInt(coincidenciaISO[2], 10) - 1;
-                const dia = parseInt(coincidenciaISO[3], 10);
-                const fechaLocal = new Date(anio, mes, dia);
-                if (!isNaN(fechaLocal.getTime())) return fechaLocal;
-            }
-
-            const fNativa = new Date(str);
-            if (!isNaN(fNativa.getTime())) return fNativa;
-
             return null;
         }
 
@@ -611,32 +512,25 @@
             const headersRow = document.getElementById('headers');
             const cuerpoTabla = document.getElementById('cuerpo-tabla');
 
-            if (!headersRow || !cuerpoTabla) return;
+            if (!headersRow || !cuerpoTabla || todosLosDatos.length === 0) return;
 
-            if (todosLosDatos.length === 0) {
-                headersRow.innerHTML = '';
-                cuerpoTabla.innerHTML = '';
-                return;
-            }
+            const keys = Object.keys(todosLosDatos[0]);
+            const keyMarcaTemporal = keys.find(k => normalizarTexto(k).includes("MARCA") || normalizarTexto(k).includes("TEMPORAL")) || keys[0];
+            const keyCategoria = keys.find(k => normalizarTexto(k).includes("CATEGORIA"));
 
-            const primerObjeto = todosLosDatos[0];
-            const keys = Object.keys(primerObjeto);
-            const keyMarcaTemporal = keys.find(k => esMarcaTemporal(k)) || keys[0];
-            const keyCategoria = keys.find(k => esColumnaCategoria(k));
-
-            const encabezadosVisibles = keys.filter(key => key !== keyMarcaTemporal && !esMarcaTemporal(key));
+            // Excluimos la marca temporal de la vista principal
+            const encabezadosVisibles = keys.filter(k => k !== keyMarcaTemporal && !normalizarTexto(k).includes("MARCA"));
 
             headersRow.innerHTML = encabezadosVisibles.map(h => `<th>${h}</th>`).join('');
 
             const diaBusqueda = normalizarTexto(diaSeleccionado);
             const catBusqueda = normalizarTexto(categoriaSeleccionada);
-            
+
             const datosFiltrados = todosLosDatos.filter(fila => {
                 if (catBusqueda !== 'TODAS' && keyCategoria) {
-                    const valorCatFila = normalizarTexto(fila[keyCategoria]);
-                    if (!valorCatFila.includes(catBusqueda)) return false;
+                    if (!normalizarTexto(fila[keyCategoria]).includes(catBusqueda)) return false;
                 }
-
+                
                 if (diaBusqueda === 'TODOS') return true;
 
                 const valorMarca = fila[keyMarcaTemporal];
@@ -645,7 +539,7 @@
                 const txtNorm = normalizarTexto(valorMarca);
                 if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
                 if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
-                if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
+                if (diaBusqueda === "SÁBADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
                 if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
 
                 const fecha = parsearFechaLatino(valorMarca);
@@ -653,7 +547,7 @@
                     const numDia = fecha.getDay(); 
                     if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
                     if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
-                    if (diaBusqueda === 'SABADO' && numDia === 6) return true;
+                    if (diaBusqueda === 'SÁBADO' && numDia === 6) return true;
                     if (diaBusqueda === 'DOMINGO' && numDia === 0) return true;
                 }
 
@@ -661,7 +555,7 @@
             });
 
             if (datosFiltrados.length === 0) {
-                cuerpoTabla.innerHTML = `<tr><td colspan="${encabezadosVisibles.length}">No hay partidos registrados para los filtros seleccionados.</td></tr>`;
+                cuerpoTabla.innerHTML = `<tr><td colspan="${encabezadosVisibles.length}">No hay partidos cargados para este filtro.</td></tr>`;
                 return;
             }
 
@@ -674,7 +568,7 @@
                 encabezadosVisibles.forEach(header => {
                     let valor = (fila[header] !== undefined && fila[header] !== null && fila[header] !== "") ? fila[header] : "-";
                     const headerUpper = normalizarTexto(header);
-                    const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES') || headerUpper.includes('RESULTADO');
+                    const esPuntos = headerUpper.includes('PUNTOS') || headerUpper.includes('SCORE') || headerUpper.includes('GOLES');
 
                     let contenidoTd = valor;
 
@@ -703,15 +597,15 @@
 
             encabezados.forEach(h => {
                 const name = normalizarTexto(h);
-                if (name.includes('CLUB 1') || name.includes('EQUIPO 1') || name.includes('LOCAL')) {
-                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                if (name.includes('EQUIPO 1') || name.includes('CLUB 1') || name.includes('LOCAL')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES')) {
                         puntos1 = parseInt(fila[h], 10);
                         puntos1Header = h;
                     } else {
                         club1Header = h;
                     }
-                } else if (name.includes('CLUB 2') || name.includes('EQUIPO 2') || name.includes('VISITANTE')) {
-                    if (name.includes('PUNTOS') || name.includes('GOLES') || name.includes('SCORE')) {
+                } else if (name.includes('EQUIPO 2') || name.includes('CLUB 2') || name.includes('VISITANTE')) {
+                    if (name.includes('PUNTOS') || name.includes('GOLES')) {
                         puntos2 = parseInt(fila[h], 10);
                         puntos2Header = h;
                     } else {
