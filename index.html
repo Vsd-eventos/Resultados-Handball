@@ -389,7 +389,7 @@
         <div class="filtros-dias">
             <button class="btn-dia" onclick="filtrarPorDia('JUEVES')">Jueves</button>
             <button class="btn-dia" onclick="filtrarPorDia('VIERNES')">Viernes</button>
-            <button class="btn-dia" onclick="filtrarPorDia('SÁBADO')">Sábado</button>
+            <button class="btn-dia" onclick="filtrarPorDia('SABADO')">Sábado</button>
             <button class="btn-dia" onclick="filtrarPorDia('DOMINGO')">Domingo</button>
             <button class="btn-dia activo" onclick="filtrarPorDia('TODOS')">Todos los Días</button>
         </div>
@@ -409,9 +409,8 @@
     </div>
 
     <script>
-        // ENLACE DIRECTO CSV PROPORCIONADO
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHrPGhTdj1zQYwy6u10chQZSP2QvQ2enVWMk_kTAx0nxN3ZgZCpc64sFZ_d8kXNFlby5RQtayeGndf/pub?gid=1824343995&single=true&output=csv'; 
-        const TIEMPO_REFRESCO_MS = 20000; // Refresco automático cada 20 segundos
+        const TIEMPO_REFRESCO_MS = 20000;
 
         let todosLosDatos = [];
         let diaSeleccionado = 'TODOS';
@@ -422,7 +421,6 @@
             return String(txt).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
         }
 
-        // Parseador ligero y seguro para CSV
         function csvToJSON(csvText) {
             const lines = csvText.split(/\r\n|\n/);
             if (lines.length < 2) return [];
@@ -433,7 +431,6 @@
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 
-                // Expresión regular para separar comas respetando comillas
                 const currentline = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 const obj = {};
                 
@@ -447,7 +444,6 @@
         }
 
         async function cargarDatos() {
-            // Lectura instantánea desde almacenamiento local si existe
             const datosCache = localStorage.getItem('vsd_resultados_cache');
             if (datosCache && todosLosDatos.length === 0) {
                 try {
@@ -476,9 +472,11 @@
         }
 
         function filtrarPorDia(dia) {
-            diaSeleccionado = dia;
+            diaSeleccionado = normalizarTexto(dia);
+            
             document.querySelectorAll('.btn-dia').forEach(btn => {
-                if (normalizarTexto(btn.textContent).includes(normalizarTexto(dia))) {
+                const btnTextoNorm = normalizarTexto(btn.textContent);
+                if (btnTextoNorm.includes(diaSeleccionado) || (diaSeleccionado === 'SABADO' && btnTextoNorm.includes('SABADO'))) {
                     btn.classList.add('activo');
                 } else {
                     btn.classList.remove('activo');
@@ -518,7 +516,6 @@
             const keyMarcaTemporal = keys.find(k => normalizarTexto(k).includes("MARCA") || normalizarTexto(k).includes("TEMPORAL")) || keys[0];
             const keyCategoria = keys.find(k => normalizarTexto(k).includes("CATEGORIA"));
 
-            // Excluimos la marca temporal de la vista principal
             const encabezadosVisibles = keys.filter(k => k !== keyMarcaTemporal && !normalizarTexto(k).includes("MARCA"));
 
             headersRow.innerHTML = encabezadosVisibles.map(h => `<th>${h}</th>`).join('');
@@ -539,7 +536,7 @@
                 const txtNorm = normalizarTexto(valorMarca);
                 if (diaBusqueda === "JUEVES" && (txtNorm.includes("JUEVES") || txtNorm.includes("JUE"))) return true;
                 if (diaBusqueda === "VIERNES" && (txtNorm.includes("VIERNES") || txtNorm.includes("VIE"))) return true;
-                if (diaBusqueda === "SÁBADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SÁBADO") || txtNorm.includes("SAB"))) return true;
+                if (diaBusqueda === "SABADO" && (txtNorm.includes("SABADO") || txtNorm.includes("SAB"))) return true;
                 if (diaBusqueda === "DOMINGO" && (txtNorm.includes("DOMINGO") || txtNorm.includes("DOM"))) return true;
 
                 const fecha = parsearFechaLatino(valorMarca);
@@ -547,7 +544,7 @@
                     const numDia = fecha.getDay(); 
                     if (diaBusqueda === 'JUEVES' && numDia === 4) return true;
                     if (diaBusqueda === 'VIERNES' && numDia === 5) return true;
-                    if (diaBusqueda === 'SÁBADO' && numDia === 6) return true;
+                    if (diaBusqueda === 'SABADO' && numDia === 6) return true;
                     if (diaBusqueda === 'DOMINGO' && numDia === 0) return true;
                 }
 
